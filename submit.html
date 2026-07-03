@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Submit a Task</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237F77DD'/><rect x='7' y='9' width='11' height='3' rx='1.5' fill='white'/><rect x='7' y='14.5' width='14' height='3' rx='1.5' fill='white'/><rect x='7' y='20' width='8' height='3' rx='1.5' fill='white'/><circle cx='24' cy='21.5' r='5' fill='%23EF9F27'/><path d='M21.5 21.5 L23.2 23.2 L26.5 19.8' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F9F9F8;--surface:#FFFFFF;--surface2:#F1F1EF;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#1A1A1A;--text2:#6B6B6B;--text3:#A8A8A3;
+  --radius:10px;--radius-sm:6px;
+  --accent:#7F77DD;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#111110;--surface:#1C1C1A;--surface2:#252523;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --text:#F0EFEA;--text2:#9A9990;--text3:#5C5B56;
+}}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;font-size:14px;line-height:1.5;}
+.card{background:var(--surface);border:0.5px solid var(--border2);border-radius:16px;padding:2rem;width:100%;max-width:480px;}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:1.75rem;}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-icon svg{width:18px;height:18px;}
+.logo-text{font-size:15px;font-weight:600;}
+.logo-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+h1{font-size:18px;font-weight:600;margin-bottom:4px;}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:1.75rem;}
+.field{margin-bottom:1rem;}
+.field label{font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em;}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--bg);border:0.5px solid var(--border2);
+  border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;
+  color:var(--text);font-family:inherit;outline:none;transition:border-color 0.15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field textarea{height:90px;resize:vertical;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.required{color:var(--accent);}
+.btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:0.5rem;transition:opacity 0.15s;}
+.btn:hover{opacity:0.88;}
+.btn:disabled{opacity:0.5;cursor:not-allowed;}
+.success{display:none;text-align:center;padding:1rem 0;}
+.success-icon{width:52px;height:52px;background:#E1F5EE;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;}
+.success-icon svg{width:24px;height:24px;}
+.success h2{font-size:16px;font-weight:600;margin-bottom:6px;}
+.success p{font-size:13px;color:var(--text2);margin-bottom:1.25rem;}
+.success .another{background:none;border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:9px 20px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text2);}
+.success .another:hover{color:var(--text);}
+.error-msg{font-size:12px;color:#E24B4A;margin-top:5px;display:none;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="4" width="7" height="2" rx="1" fill="white"/>
+        <rect x="2" y="8" width="10" height="2" rx="1" fill="white"/>
+        <rect x="2" y="12" width="5" height="2" rx="1" fill="white"/>
+        <circle cx="14" cy="13" r="3" fill="#EF9F27"/>
+        <path d="M12.5 13 L13.5 14 L15.5 12" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">Isaac's Workspace</div>
+      <div class="logo-sub">Task submission</div>
+    </div>
+  </div>
+
+  <div id="formWrap">
+    <h1>Submit a task</h1>
+    <p class="subtitle">Fill in the details below and it'll land straight in the dashboard.</p>
+
+    <div class="field">
+      <label>Your name <span class="required">*</span></label>
+      <input type="text" id="f-name" placeholder="Who's sending this?"/>
+      <div class="error-msg" id="err-name">Please enter your name</div>
+    </div>
+
+    <div class="field">
+      <label>Task <span class="required">*</span></label>
+      <input type="text" id="f-task" placeholder="What needs doing?"/>
+      <div class="error-msg" id="err-task">Please describe the task</div>
+    </div>
+
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="f-notes" placeholder="Context, links, deadlines, anything useful..."></textarea>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Area <span class="required">*</span></label>
+        <select id="f-area">
+          <option value="">Select...</option>
+          <option value="1">BRND WGN</option>
+          <option value="2">HC Melita</option>
+          <option value="3">Melita Generic</option>
+          <option value="4">Freelance</option>
+        </select>
+        <div class="error-msg" id="err-area">Please select an area</div>
+      </div>
+      <div class="field">
+        <label>Priority</label>
+        <select id="f-prio">
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn" id="submitBtn" onclick="submitTask()">Submit task</button>
+  </div>
+
+  <div class="success" id="successWrap">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 12 L10 17 L19 7" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2>Task submitted!</h2>
+    <p>It's landed in the dashboard. Isaac will pick it up shortly.</p>
+    <button class="another" onclick="resetForm()">Submit another</button>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://rjwyypihyspddyjaxwfz.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd3l5cGloeXNwZGR5amF4d2Z6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MjExNTYsImV4cCI6MjA5Nzk5NzE1Nn0.IZ7hDpFisKabw2RRwQE3uA-WPQV4p1RThp7bU_1cM8w';
+const SB_HEADERS = {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+
+async function submitTask(){
+  // Validate
+  let valid = true;
+  const name = document.getElementById('f-name').value.trim();
+  const task = document.getElementById('f-task').value.trim();
+  const area = document.getElementById('f-area').value;
+  const prio = document.getElementById('f-prio').value;
+  const notes = document.getElementById('f-notes').value.trim();
+
+  document.getElementById('err-name').style.display = name ? 'none' : 'block';
+  document.getElementById('err-task').style.display = task ? 'none' : 'block';
+  document.getElementById('err-area').style.display = area ? 'none' : 'block';
+  if(!name || !task || !area) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    // Load current data
+    const res = await fetch(`${SB_URL}/rest/v1/tm_data?id=eq.singleton&select=payload`, {headers:SB_HEADERS});
+    const rows = await res.json();
+    const data = rows[0].payload;
+
+    // Build new task
+    const newTask = {
+      id: data.nextTaskId++,
+      name: task,
+      notes: notes ? `[From: ${name}] ${notes}` : `[From: ${name}]`,
+      areaId: parseInt(area),
+      projId: null,
+      prio: prio,
+      status: 'todo',
+      due: ''
+    };
+
+    data.tasks.unshift(newTask);
+
+    // Save back
+    const save = await fetch(`${SB_URL}/rest/v1/tm_data?id=eq.singleton`, {
+      method: 'PATCH',
+      headers: {...SB_HEADERS, 'Prefer':'return=minimal'},
+      body: JSON.stringify({payload: data, updated_at: new Date().toISOString()})
+    });
+
+    if(!save.ok) throw new Error('save failed');
+
+    document.getElementById('formWrap').style.display = 'none';
+    document.getElementById('successWrap').style.display = 'block';
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Submit task';
+    alert('Something went wrong — please try again.');
+  }
+}
+
+function resetForm(){
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-task').value = '';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('f-area').value = '';
+  document.getElementById('f-prio').value = 'medium';
+  document.getElementById('formWrap').style.display = 'block';
+  document.getElementById('successWrap').style.display = 'none';
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('submitBtn').textContent = 'Submit task';
+}
+</script>
+</body>
+</html>
