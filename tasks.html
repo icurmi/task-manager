@@ -210,8 +210,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <h1 id="topbar-title">Home</h1>
     <div class="topbar-actions">
       <div class="view-toggle" id="viewToggle" style="display:none">
-        <button class="view-btn active" id="vt-list" onclick="setTaskView('list')" title="List"><i class="ti ti-list"></i></button>
-        <button class="view-btn" id="vt-kanban" onclick="setTaskView('kanban')" title="Kanban"><i class="ti ti-layout-columns"></i></button>
+        <button class="view-btn active" id="vt-list" onclick="setTaskView('list')" title="List view">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="2.5" width="13" height="2" rx="1" fill="currentColor"/><rect x="1" y="6.5" width="13" height="2" rx="1" fill="currentColor"/><rect x="1" y="10.5" width="13" height="2" rx="1" fill="currentColor"/></svg>
+        </button>
+        <button class="view-btn" id="vt-kanban" onclick="setTaskView('kanban')" title="Board view">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="3.5" height="13" rx="1" fill="currentColor"/><rect x="5.75" y="1" width="3.5" height="9" rx="1" fill="currentColor"/><rect x="10.5" y="1" width="3.5" height="11" rx="1" fill="currentColor"/></svg>
+        </button>
       </div>
       <button class="btn-sm btn-primary" id="btn-add-task" onclick="openTaskModal(null)" style="display:none"><i class="ti ti-plus"></i> Task</button>
       <button class="btn-sm btn-primary" id="btn-add-proj" onclick="openProjModal(null)" style="display:none"><i class="ti ti-plus"></i> Project</button>
@@ -308,7 +312,7 @@ const STATUS={todo:{label:'To do',cls:'b-todo'},inprogress:{label:'In progress',
 
 let data={areas:[],projects:[],tasks:[],nextAreaId:1,nextProjId:1,nextTaskId:1};
 let curView='home',curArea=null,curProj=null;
-let taskViewMode='list',filterStatus='all',filterPrio='all';
+let taskViewMode='list',filterStatus='all',filterPrio='all',filterArea='all';
 let editTaskId=null,editProjId=null,editAreaId=null,selColour='purple',prefillStatus=null;
 let saveTimer=null;
 
@@ -480,18 +484,30 @@ function applyFilters(tasks){
   return tasks.filter(t=>{
     if(filterStatus!=='all'&&t.status!==filterStatus)return false;
     if(filterPrio!=='all'&&t.prio!==filterPrio)return false;
+    if(filterArea!=='all'&&t.areaId!==parseInt(filterArea))return false;
     return true;
   });
 }
 
 function filterBar(){
-  const fp=(type,val,label)=>`<button class="pill${(type==='status'?filterStatus:filterPrio)===val?' active':''}" onclick="setFilter('${type}','${val}')">${label}</button>`;
+  const sep=`<span style="width:0.5px;height:16px;background:var(--border2);margin:0 4px;display:inline-block;flex-shrink:0"></span>`;
+  const fp=(type,val,label)=>{
+    let active=false;
+    if(type==='status')active=filterStatus===val;
+    else if(type==='prio')active=filterPrio===val;
+    else if(type==='area')active=filterArea===val;
+    return`<button class="pill${active?' active':''}" onclick="setFilter('${type}','${val}')">${label}</button>`;
+  };
+  const areaPills=data.areas.map(a=>fp('area',String(a.id),a.name)).join('');
   return`<div class="filter-bar">
     ${fp('status','all','All')}${fp('status','todo','To do')}${fp('status','inprogress','In progress')}${fp('status','done','Done')}
-    <span style="width:0.5px;height:16px;background:var(--border2);margin:0 4px;display:inline-block;flex-shrink:0"></span>
+    ${sep}
     ${fp('prio','all','All priority')}${fp('prio','high','High')}${fp('prio','medium','Medium')}${fp('prio','low','Low')}
+    ${sep}
+    ${fp('area','all','All areas')}${areaPills}
   </div>`;
 }
+
 
 function taskTHead(){
   return`<thead><tr><th style="width:28px"></th><th>Task</th><th style="width:110px">Area</th><th style="width:90px">Priority</th><th style="width:96px">Status</th><th style="width:80px">Due</th><th style="width:56px"></th></tr></thead><tbody>`;
@@ -619,7 +635,7 @@ function renderProjectDetail(){
 
 /* ── INTERACTIONS ── */
 function showView(view,param){
-  curView=view;filterStatus='all';filterPrio='all';
+  curView=view;filterStatus='all';filterPrio='all';filterArea='all';
   if(view==='area')curArea=param;
   if(view==='project')curProj=param;
   render();window.scrollTo(0,0);
@@ -630,7 +646,12 @@ function setTaskView(m){
   document.getElementById('vt-kanban').classList.toggle('active',m==='kanban');
   render();
 }
-function setFilter(type,val){if(type==='status')filterStatus=val;else filterPrio=val;render();}
+function setFilter(type,val){
+  if(type==='status')filterStatus=val;
+  else if(type==='prio')filterPrio=val;
+  else if(type==='area')filterArea=val;
+  render();
+}
 function toggleTask(id){const t=data.tasks.find(x=>x.id===id);if(t){t.status=t.status==='done'?'todo':'done';scheduleSave();render();}}
 function deleteTask(id){if(!confirm('Delete this task?'))return;data.tasks=data.tasks.filter(x=>x.id!==id);scheduleSave();render();}
 function deleteTaskFromModal(){if(!confirm('Delete this task?'))return;data.tasks=data.tasks.filter(x=>x.id!==editTaskId);closeTaskModal();scheduleSave();render();}
