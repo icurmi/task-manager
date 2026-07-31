@@ -109,6 +109,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .task-row:hover{background:var(--surface2);}
 .task-row.done-row td{opacity:0.42;}
 .task-row.done-row .task-name{text-decoration:line-through;}
+@keyframes taskFadeOut{0%{opacity:1;}35%{opacity:1;}100%{opacity:0;transform:translateX(10px);}}
+.task-row.task-removing{animation:taskFadeOut 0.42s ease forwards;pointer-events:none;}
 .task-row td{padding:8px 10px;vertical-align:middle;}
 .check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .check:hover{border-color:var(--text3);}
@@ -312,7 +314,7 @@ const STATUS={todo:{label:'To do',cls:'b-todo'},inprogress:{label:'In progress',
 
 let data={areas:[],projects:[],tasks:[],nextAreaId:1,nextProjId:1,nextTaskId:1};
 let curView='home',curArea=null,curProj=null;
-let taskViewMode='list',filterStatus='all',filterPrio='all',filterArea='all';
+let taskViewMode='list',filterStatus='active',filterPrio='all',filterArea='all';
 let editTaskId=null,editProjId=null,editAreaId=null,selColour='purple',prefillStatus=null;
 let saveTimer=null;
 
@@ -482,7 +484,11 @@ function renderTasksPage(tasks,skipFilter){
 
 function applyFilters(tasks){
   return tasks.filter(t=>{
-    if(filterStatus!=='all'&&t.status!==filterStatus)return false;
+    // In board view the columns represent status, so the status pills don't apply.
+    if(taskViewMode!=='kanban'){
+      if(filterStatus==='active'){if(t.status==='done')return false;}
+      else if(t.status!==filterStatus)return false;
+    }
     if(filterPrio!=='all'&&t.prio!==filterPrio)return false;
     if(filterArea!=='all'&&t.areaId!==parseInt(filterArea))return false;
     return true;
@@ -499,9 +505,10 @@ function filterBar(){
     return`<button class="pill${active?' active':''}" onclick="setFilter('${type}','${val}')">${label}</button>`;
   };
   const areaPills=data.areas.map(a=>fp('area',String(a.id),a.name)).join('');
+  // Status pills are hidden in board view, where the columns already represent status.
+  const statusPills=taskViewMode==='kanban'?'':`${fp('status','active','Active')}${fp('status','inprogress','In progress')}${fp('status','done','Done')}${sep}`;
   return`<div class="filter-bar">
-    ${fp('status','all','All')}${fp('status','todo','To do')}${fp('status','inprogress','In progress')}${fp('status','done','Done')}
-    ${sep}
+    ${statusPills}
     ${fp('prio','all','All priority')}${fp('prio','high','High')}${fp('prio','medium','Medium')}${fp('prio','low','Low')}
     ${sep}
     ${fp('area','all','All areas')}${areaPills}
@@ -635,7 +642,7 @@ function renderProjectDetail(){
 
 /* ── INTERACTIONS ── */
 function showView(view,param){
-  curView=view;filterStatus='all';filterPrio='all';filterArea='all';
+  curView=view;filterStatus='active';filterPrio='all';filterArea='all';
   if(view==='area')curArea=param;
   if(view==='project')curProj=param;
   render();window.scrollTo(0,0);
@@ -652,7 +659,25 @@ function setFilter(type,val){
   else if(type==='area')filterArea=val;
   render();
 }
-function toggleTask(id){const t=data.tasks.find(x=>x.id===id);if(t){t.status=t.status==='done'?'todo':'done';scheduleSave();render();}}
+function toggleTask(id){
+  const t=data.tasks.find(x=>x.id===id);
+  if(!t)return;
+  const completing=t.status!=='done';
+  const row=document.getElementById('tr-'+id);
+  // Only animate out when the task is being completed AND the current view hides done tasks.
+  const viewHidesDone=(curView==='tasks'||curView==='area')&&filterStatus!=='done'&&taskViewMode!=='kanban';
+  if(completing&&row&&viewHidesDone){
+    t.status='done';scheduleSave();
+    const chk=row.querySelector('.check');if(chk)chk.classList.add('on');
+    row.classList.add('done-row','task-removing');
+    let fired=false;const finish=()=>{if(fired)return;fired=true;render();};
+    row.addEventListener('animationend',finish,{once:true});
+    setTimeout(finish,600); // fallback if animationend doesn't fire
+  }else{
+    t.status=completing?'done':'todo';
+    scheduleSave();render();
+  }
+}
 function deleteTask(id){if(!confirm('Delete this task?'))return;data.tasks=data.tasks.filter(x=>x.id!==id);scheduleSave();render();}
 function deleteTaskFromModal(){if(!confirm('Delete this task?'))return;data.tasks=data.tasks.filter(x=>x.id!==editTaskId);closeTaskModal();scheduleSave();render();}
 function deleteProjFromModal(){
