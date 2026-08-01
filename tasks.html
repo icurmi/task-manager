@@ -506,7 +506,7 @@ function filterBar(){
   };
   const areaPills=data.areas.map(a=>fp('area',String(a.id),a.name)).join('');
   // Status pills are hidden in board view, where the columns already represent status.
-  const statusPills=taskViewMode==='kanban'?'':`${fp('status','active','Active')}${fp('status','inprogress','In progress')}${fp('status','done','Done')}${sep}`;
+  const statusPills=taskViewMode==='kanban'?'':`${fp('status','active','To do')}${fp('status','inprogress','In progress')}${fp('status','done','Done')}${sep}`;
   return`<div class="filter-bar">
     ${statusPills}
     ${fp('prio','all','All priority')}${fp('prio','high','High')}${fp('prio','medium','Medium')}${fp('prio','low','Low')}
