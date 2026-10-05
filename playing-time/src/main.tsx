@@ -4,7 +4,7 @@ import { App } from './ui/App';
 import './ui/styles.css';
 
 if (!import.meta.env.DEV && !(window as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()) {
-  import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }));
+  import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true })).catch(() => undefined);
 }
 
 // Ask the browser not to evict our IndexedDB under storage pressure – match data lives there.

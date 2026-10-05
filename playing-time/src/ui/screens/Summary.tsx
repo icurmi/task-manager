@@ -128,6 +128,7 @@ function IntervalEditor({ match, player, intervals, canEdit, editor }: {
   const [draft, setDraft] = useState<Record<string, { on: string; off: string }>>({});
   const [adding, setAdding] = useState<{ on: string; off: string } | null>(null);
   const [err, setErr] = useState('');
+  const [armed, setArmed] = useState<string | null>(null);
   const dur = match.durationMs ?? 0;
 
   const save = async (iv: PlayingInterval | null, on: string, off: string) => {
@@ -164,7 +165,10 @@ function IntervalEditor({ match, player, intervals, canEdit, editor }: {
                 {canEdit && (
                   <>
                     <button className="btn small" onClick={() => setDraft({ ...draft, [iv.id]: { on: fmtClock(iv.onMs), off: fmtClock(iv.offMs) } })}>Edit</button>
-                    <button className="btn small danger" onClick={() => { if (confirm('Delete this interval?')) void correctInterval(match, editor, { action: 'delete', interval: iv }); }}>Delete</button>
+                    <button className="btn small danger" onClick={() => {
+                      if (armed === iv.id) { setArmed(null); void correctInterval(match, editor, { action: 'delete', interval: iv }); }
+                      else setArmed(iv.id);
+                    }}>{armed === iv.id ? 'Tap again to delete' : 'Delete'}</button>
                   </>
                 )}
               </>

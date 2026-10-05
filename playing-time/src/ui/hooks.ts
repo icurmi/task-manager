@@ -24,22 +24,45 @@ export function useNow(active: boolean, everyMs = 250): number {
   return now;
 }
 
-function subscribeHash(cb: () => void) {
-  window.addEventListener('hashchange', cb);
-  return () => window.removeEventListener('hashchange', cb);
+// Routes live in memory and are mirrored to location.hash when the host allows it.
+// Some embedded hosts (sandboxed frames) don't deliver hash changes, so the app never depends on them.
+let currentRoute = typeof window !== 'undefined' ? window.location.hash.replace(/^#\/?/, '') : '';
+const routeListeners = new Set<() => void>();
+
+function subscribeRoute(cb: () => void) {
+  routeListeners.add(cb);
+  const onHash = () => {
+    const h = window.location.hash.replace(/^#\/?/, '');
+    if (h !== currentRoute) {
+      currentRoute = h;
+      routeListeners.forEach((l) => l());
+    }
+  };
+  window.addEventListener('hashchange', onHash);
+  window.addEventListener('popstate', onHash);
+  return () => {
+    routeListeners.delete(cb);
+    window.removeEventListener('hashchange', onHash);
+    window.removeEventListener('popstate', onHash);
+  };
 }
 
 export function useRoute(): { path: string[]; query: URLSearchParams } {
-  const hash = useSyncExternalStore(subscribeHash, () => window.location.hash);
-  const raw = hash.replace(/^#\/?/, '');
+  const raw = useSyncExternalStore(subscribeRoute, () => currentRoute);
   const [p, q = ''] = raw.split('?');
   return { path: p.split('/').filter(Boolean), query: new URLSearchParams(q) };
 }
 
 export function go(path: string, replace = false) {
-  const h = '#/' + path.replace(/^\//, '');
-  if (replace) window.location.replace(h);
-  else window.location.hash = h;
+  currentRoute = path.replace(/^\//, '');
+  try {
+    const h = '#/' + currentRoute;
+    if (replace) history.replaceState(null, '', h);
+    else history.pushState(null, '', h);
+  } catch {
+    /* host doesn't allow URL changes – in-memory routing still works */
+  }
+  routeListeners.forEach((l) => l());
 }
 
 export function useOnline() {
